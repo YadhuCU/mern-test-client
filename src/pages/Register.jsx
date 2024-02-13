@@ -6,12 +6,13 @@ import {
   Select,
   Button,
   Textarea,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import { Radio, RadioGroup } from "@chakra-ui/react";
 import { useState } from "react";
 import { useToast } from "@chakra-ui/react";
 import { SERVER_URL } from "../serverURL";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 Register.propTypes = {};
 
@@ -29,6 +30,7 @@ export function Register() {
     gender: "",
   });
   const navigate = useNavigate();
+  const [mobileError, setMobileError] = useState(false);
 
   const handleRegister = async () => {
     console.log(userData);
@@ -85,32 +87,53 @@ export function Register() {
         },
       });
       const resutlJson = await result.json();
-      toast({
-        title: "Success...",
-        description: "Student Data registerd successfully.",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-        position: "top",
-      });
-      setTimeout(() => {
-        navigate("/home");
-      }, 3000);
+      if (result.status === 200) {
+        toast({
+          title: "Success...",
+          description: "Student Data registerd successfully.",
+          status: "success",
+          duration: 2000,
+          isClosable: true,
+          position: "top",
+        });
+        setTimeout(() => {
+          navigate("/home");
+        }, 1000);
+        setUserData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          address: "",
+          mobile: "",
+          password: "",
+          dateOfBirth: "",
+          course: "",
+          gender: "",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: resutlJson,
+          status: "error",
+          duration: 2000,
+          isClosable: true,
+          position: "top",
+        });
+      }
+      console.log("resultJson", resutlJson);
     } catch (err) {
       console.log(err);
     }
+  };
 
-    setUserData({
-      firstName: "",
-      lastName: "",
-      email: "",
-      address: "",
-      mobile: "",
-      password: "",
-      dateOfBirth: "",
-      course: "",
-      gender: "",
-    });
+  const handleNumberChange = (e) => {
+    if (e.target.value.match(/\d{10}/)) {
+      setMobileError(false);
+      setUserData({ ...userData, mobile: e.target.value });
+    } else {
+      setMobileError(true);
+      setUserData({ ...userData, mobile: e.target.value });
+    }
   };
 
   return (
@@ -122,6 +145,13 @@ export function Register() {
             Lorem ipsum dolor sit, amet consectetur adipisicing elit. Distinctio
             nobis{" "}
           </p>
+          <div className="mt-5">
+            <Link to="/home">
+              <Button color={"teal"} size="lg">
+                View All User Data
+              </Button>
+            </Link>
+          </div>
         </div>
         <div className="w-full h-full p-8 ">
           <h1 className="text-3xl mb-5 font-bold text-center text-teal-600">
@@ -191,17 +221,18 @@ export function Register() {
               </FormControl>
             </div>
             <div className="grid gap-4">
-              <FormControl>
+              <FormControl isInvalid={mobileError}>
                 <FormLabel>Mobile</FormLabel>
                 <Input
                   variant="filled"
                   type="text"
                   placeholder="Enter your Mobile Number"
                   value={userData.mobile}
-                  onChange={(e) =>
-                    setUserData({ ...userData, mobile: e.target.value })
-                  }
+                  onChange={handleNumberChange}
                 />
+                {mobileError && (
+                  <FormErrorMessage>Enter valid Mobile Number</FormErrorMessage>
+                )}
               </FormControl>
               <FormControl>
                 <FormLabel>Password</FormLabel>
